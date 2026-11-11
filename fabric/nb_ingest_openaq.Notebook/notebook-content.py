@@ -1,0 +1,226 @@
+# Fabric notebook source
+
+# METADATA ********************
+
+# META {
+# META   "kernel_info": {
+# META     "name": "synapse_pyspark"
+# META   },
+# META   "dependencies": {
+# META     "lakehouse": {
+# META       "default_lakehouse": "110f0067-e69e-496d-a8e0-0cffd7ba5731",
+# META       "default_lakehouse_name": "lh_bronze",
+# META       "default_lakehouse_workspace_id": "c70900d4-8446-43f4-8a7d-4bca5f785f14",
+# META       "known_lakehouses": [
+# META         {
+# META           "id": "110f0067-e69e-496d-a8e0-0cffd7ba5731"
+# META         }
+# META       ]
+# META     }
+# META   }
+# META }
+
+# CELL ********************
+
+import requests
+
+API_KEY = Path("/lakehouse/default/Files/config/openaq.key").read_text().strip()
+BASE_URL = "https://api.openaq.org/v3"
+SENSORS = [673, 1097, 1102, 1103, 1152, 1128, 1145, 1146, 25520, 2780575, 1535, 23341]
+DATE_FROM = "2024-01-01"
+DATE_TO = "2026-11-01"
+PAGE_SIZE = 1000
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+def get_page(sensor_id, page):
+    response = requests.get(
+        f"{BASE_URL}/sensors/{sensor_id}/days",
+        headers={"X-API-Key": API_KEY},
+        params={"date_from": DATE_FROM, "date_to": DATE_TO, "limit": PAGE_SIZE, "page": page},
+    )
+    response.raise_for_status()
+    return response.json()["results"]
+
+
+len(get_page(673, 1))
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+def get_sensor(sensor_id):
+    rows = []
+    page = 1
+    while True:
+        results = get_page(sensor_id, page)
+        for row in results:
+            row["sensor_id"] = sensor_id
+        rows.extend(results)
+        if len(results) < PAGE_SIZE:
+            return rows
+        page += 1
+
+
+len(get_sensor(673))
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+import pandas as pd
+
+all_rows = [row for sensor_id in SENSORS for row in get_sensor(sensor_id)]
+pdf = pd.json_normalize(all_rows)
+pdf.columns = [c.replace(".", "_") for c in pdf.columns]
+
+print(pdf.shape)
+pdf.columns.tolist()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+pdf = pdf.dropna(axis=1, how="all")
+
+spark.createDataFrame(pdf).write.mode("overwrite").saveAsTable("openaq_days")
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+WB_URL = "https://api.worldbank.org/v2/country/USA/indicator/NY.GDP.MKTP.CD"
+
+wb_response = requests.get(WB_URL, params={"format": "json", "per_page": 100})
+wb_response.raise_for_status()
+wb_rows = wb_response.json()[1]
+
+wb_pdf = pd.json_normalize(wb_rows)
+wb_pdf.columns = [c.replace(".", "_") for c in wb_pdf.columns]
+print(wb_pdf.shape)
+wb_pdf.head()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+spark.createDataFrame(wb_pdf).write.mode("overwrite").saveAsTable("worldbank_gdp")
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+import io
+
+ECB_URL = "https://data-api.ecb.europa.eu/service/data/EXR/D.USD.EUR.SP00.A"
+
+ecb_response = requests.get(
+    ECB_URL,
+    params={"format": "csvdata", "startPeriod": DATE_FROM, "endPeriod": DATE_TO},
+)
+ecb_response.raise_for_status()
+
+ecb_pdf = pd.read_csv(io.StringIO(ecb_response.text))
+ecb_pdf = ecb_pdf.dropna(axis=1, how="all")
+print(ecb_pdf.shape)
+ecb_pdf[["TIME_PERIOD", "OBS_VALUE"]].head()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+spark.createDataFrame(ecb_pdf).write.mode("overwrite").saveAsTable("ecb_fx")
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+from pathlib import Path
+
+TAXI_URL = "https://d37ci6vzurychx.cloudfront.net/trip-data"
+MONTHS = [f"{year}-{month:02d}" for year in (2024, 2025, 2026) for month in range(1, 13)]
+
+taxi_dir = Path("/lakehouse/default/Files/taxi")
+taxi_dir.mkdir(parents=True, exist_ok=True)
+
+
+def download_month(month):
+    name = f"yellow_tripdata_{month}.parquet"
+    path = taxi_dir / name
+    if path.exists():
+        return f"{month}: skipped, already downloaded"
+    response = requests.get(f"{TAXI_URL}/{name}")
+    if response.status_code != 200:
+        return f"{month}: not published ({response.status_code})"
+    path.write_bytes(response.content)
+    return f"{month}: {len(response.content) // 1024 // 1024} MB"
+
+
+for month in MONTHS:
+    print(download_month(month))
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+files = sorted(taxi_dir.glob("*.parquet"))
+print(len(files), "files,", sum(f.stat().st_size for f in files) // 1024 // 1024, "MB")
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
