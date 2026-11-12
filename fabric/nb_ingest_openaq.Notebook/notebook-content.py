@@ -8,12 +8,12 @@
 # META   },
 # META   "dependencies": {
 # META     "lakehouse": {
-# META       "default_lakehouse": "110f0067-e69e-496d-a8e0-0cffd7ba5731",
+# META       "default_lakehouse": "ba9cfdb7-cf33-423d-8a4c-21d224e17ea8",
 # META       "default_lakehouse_name": "lh_bronze",
 # META       "default_lakehouse_workspace_id": "c70900d4-8446-43f4-8a7d-4bca5f785f14",
 # META       "known_lakehouses": [
 # META         {
-# META           "id": "110f0067-e69e-496d-a8e0-0cffd7ba5731"
+# META           "id": "ba9cfdb7-cf33-423d-8a4c-21d224e17ea8"
 # META         }
 # META       ]
 # META     }
@@ -22,6 +22,7 @@
 
 # CELL ********************
 
+from pathlib import Path
 import requests
 
 API_KEY = Path("/lakehouse/default/Files/config/openaq.key").read_text().strip()
@@ -49,9 +50,6 @@ def get_page(sensor_id, page):
     response.raise_for_status()
     return response.json()["results"]
 
-
-len(get_page(673, 1))
-
 # METADATA ********************
 
 # META {
@@ -73,9 +71,6 @@ def get_sensor(sensor_id):
             return rows
         page += 1
 
-
-len(get_sensor(673))
-
 # METADATA ********************
 
 # META {
@@ -92,7 +87,6 @@ pdf = pd.json_normalize(all_rows)
 pdf.columns = [c.replace(".", "_") for c in pdf.columns]
 
 print(pdf.shape)
-pdf.columns.tolist()
 
 # METADATA ********************
 
@@ -115,74 +109,6 @@ spark.createDataFrame(pdf).write.mode("overwrite").saveAsTable("openaq_days")
 # META }
 
 # CELL ********************
-
-WB_URL = "https://api.worldbank.org/v2/country/USA/indicator/NY.GDP.MKTP.CD"
-
-wb_response = requests.get(WB_URL, params={"format": "json", "per_page": 100})
-wb_response.raise_for_status()
-wb_rows = wb_response.json()[1]
-
-wb_pdf = pd.json_normalize(wb_rows)
-wb_pdf.columns = [c.replace(".", "_") for c in wb_pdf.columns]
-print(wb_pdf.shape)
-wb_pdf.head()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-spark.createDataFrame(wb_pdf).write.mode("overwrite").saveAsTable("worldbank_gdp")
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-import io
-
-ECB_URL = "https://data-api.ecb.europa.eu/service/data/EXR/D.USD.EUR.SP00.A"
-
-ecb_response = requests.get(
-    ECB_URL,
-    params={"format": "csvdata", "startPeriod": DATE_FROM, "endPeriod": DATE_TO},
-)
-ecb_response.raise_for_status()
-
-ecb_pdf = pd.read_csv(io.StringIO(ecb_response.text))
-ecb_pdf = ecb_pdf.dropna(axis=1, how="all")
-print(ecb_pdf.shape)
-ecb_pdf[["TIME_PERIOD", "OBS_VALUE"]].head()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-spark.createDataFrame(ecb_pdf).write.mode("overwrite").saveAsTable("ecb_fx")
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-from pathlib import Path
 
 TAXI_URL = "https://d37ci6vzurychx.cloudfront.net/trip-data"
 MONTHS = [f"{year}-{month:02d}" for year in (2024, 2025, 2026) for month in range(1, 13)]

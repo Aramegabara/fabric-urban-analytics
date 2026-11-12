@@ -1,11 +1,11 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
   "metadata": {
-    "type": "Lakehouse",
-    "displayName": "lh_silver"
+    "type": "Dataflow",
+    "displayName": "df_worldbank"
   },
   "config": {
     "version": "2.0",
-    "logicalId": "dfef00e6-7df7-960c-4728-bc8a540d7532"
+    "logicalId": "d4825d46-3dad-9d1e-4dc7-2b503f2bc9f9"
   }
 }
