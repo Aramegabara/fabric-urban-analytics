@@ -1,0 +1,34 @@
+{
+  "formatVersion": "202502",
+  "computeEngineSettings": {
+    "allowModernEvaluationEngine": true
+  },
+  "name": "df_taxi_zones",
+  "queryGroups": [],
+  "documentLocale": "pl-PL",
+  "queriesMetadata": {
+    "taxi_zones": {
+      "queryId": "226532c1-9e7a-4556-91c2-12015fd20602",
+      "queryName": "taxi_zones",
+      "loadEnabled": false
+    },
+    "taxi_zones_DataDestination": {
+      "queryId": "1b780464-4262-4be5-88c8-ffd471f8178b",
+      "queryName": "taxi_zones_DataDestination",
+      "isHidden": true,
+      "loadEnabled": false
+    }
+  },
+  "connections": [
+    {
+      "path": "https://d37ci6vzurychx.cloudfront.net/",
+      "kind": "Web",
+      "connectionId": "{\"ClusterId\":\"41803157-92ad-4a1f-a60d-f55cf72caea2\",\"DatasourceId\":\"1b50ae18-b477-4e24-b52e-fe9724cde11e\"}"
+    },
+    {
+      "path": "Lakehouse",
+      "kind": "Lakehouse",
+      "connectionId": "{\"ClusterId\":\"41803157-92ad-4a1f-a60d-f55cf72caea2\",\"DatasourceId\":\"1c173acb-2d06-430f-a990-9d90539ad4aa\"}"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Dataflow",
+    "displayName": "df_taxi_zones"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "a180d912-5280-a0d3-4ff6-b134e67db8c1"
+  }
+}

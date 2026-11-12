@@ -336,3 +336,66 @@ taxi_silver.selectExpr(
 # META   "language": "python",
 # META   "language_group": "synapse_pyspark"
 # META }
+
+# MARKDOWN ********************
+
+# ## Reference data
+# 
+# Zones and sensors are already clean at the Bronze stage, but they still pass
+# through Silver so that Gold reads from one layer only.
+# 
+# Zones 264 and 265 are "Unknown" and "N/A" in the TLC lookup. They are kept:
+# dropping them would silently lose trips instead of showing them as unknown.
+# 
+# Sensor to borough mapping is manual, see nb_ingest_openaq. OpenAQ gives
+# coordinates but not boroughs.
+
+# CELL ********************
+
+zones_bronze = spark.read.format("delta").load(f"{BRONZE}/Tables/taxi_zones")
+
+zones_silver = (
+    zones_bronze
+    .select(
+        F.col("LocationID").alias("zone_id"),
+        F.trim(F.col("Borough")).alias("borough"),
+        F.trim(F.col("Zone")).alias("zone_name"),
+        F.trim(F.col("service_zone")).alias("service_zone"),
+    )
+    .filter(F.col("zone_id").isNotNull())
+    .dropDuplicates(["zone_id"])
+    .withColumn("source_system", F.lit("NYC TLC"))
+    .withColumn("loaded_at", F.current_timestamp())
+)
+
+print(zones_silver.count())
+zones_silver.write.mode("overwrite").option("overwriteSchema", "true").saveAsTable("silver_zones")
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+sensors_bronze = spark.read.format("delta").load(f"{BRONZE}/Tables/openaq_sensors")
+
+sensors_silver = (
+    sensors_bronze
+    .select("sensor_id", "parameter", "station_name", "borough", "latitude", "longitude")
+    .dropDuplicates(["sensor_id"])
+    .withColumn("source_system", F.lit("OpenAQ"))
+    .withColumn("loaded_at", F.current_timestamp())
+)
+
+print(sensors_silver.count())
+sensors_silver.write.mode("overwrite").option("overwriteSchema", "true").saveAsTable("silver_sensors")
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }

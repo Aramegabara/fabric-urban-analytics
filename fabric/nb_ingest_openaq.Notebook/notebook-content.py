@@ -150,3 +150,81 @@ print(len(files), "files,", sum(f.stat().st_size for f in files) // 1024 // 1024
 # META   "language": "python",
 # META   "language_group": "synapse_pyspark"
 # META }
+
+# CELL ********************
+
+NYC_BBOX = "-74.5,40.4,-73.6,41.0"
+
+locations_response = requests.get(
+    f"{BASE_URL}/locations",
+    headers={"X-API-Key": API_KEY},
+    params={"bbox": NYC_BBOX, "limit": 1000},
+)
+locations_response.raise_for_status()
+locations = locations_response.json()["results"]
+
+print(len(locations))
+print(locations[0])
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+sensor_rows = [
+    {
+        "sensor_id": sensor["id"],
+        "parameter": sensor["parameter"]["name"],
+        "station_name": location["name"],
+        "provider": location["provider"]["name"],
+        "latitude": location["coordinates"]["latitude"],
+        "longitude": location["coordinates"]["longitude"],
+    }
+    for location in locations
+    for sensor in location["sensors"]
+    if sensor["id"] in SENSORS
+]
+
+print(len(sensor_rows))
+for row in sorted(sensor_rows, key=lambda r: r["sensor_id"]):
+    print(row)
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+SENSOR_BOROUGH = {
+    673: "Manhattan",
+    1097: "Manhattan",
+    1102: "Bronx",
+    1103: "Queens",
+    1128: "Brooklyn",
+    1145: "Brooklyn",
+    1146: "Bronx",
+    1152: "Queens",
+    1535: "New Jersey",
+    23341: "New Jersey",
+    25520: "Queens",
+    2780575: "Staten Island",
+}
+
+for row in sensor_rows:
+    row["borough"] = SENSOR_BOROUGH[row["sensor_id"]]
+
+spark.createDataFrame(sensor_rows).write.mode("overwrite").saveAsTable("openaq_sensors")
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }

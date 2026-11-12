@@ -1,0 +1,12 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Warehouse",
+    "displayName": "wh_gold",
+    "description": "Gold layer. Star schema over Silver: daily taxi and air quality facts with date, zone, sensor, FX and GDP dimensions."
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "b49555dd-1af2-8a43-4fbb-c47b141109f7"
+  }
+}
