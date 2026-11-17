@@ -1,0 +1,51 @@
+{
+  "formatVersion": "202502",
+  "computeEngineSettings": {
+    "allowModernEvaluationEngine": true
+  },
+  "name": "df_openaq",
+  "queryGroups": [],
+  "documentLocale": "en-US",
+  "queriesMetadata": {
+    "ApiKey": {
+      "queryId": "2306bd28-3c12-4b0b-bab2-94c971bbbc9a",
+      "queryName": "ApiKey",
+      "loadEnabled": false
+    },
+    "openaq_days": {
+      "queryId": "52e33ea4-d66b-4bda-9e39-825fee5f740f",
+      "queryName": "openaq_days",
+      "loadEnabled": false
+    },
+    "openaq_days_DataDestination": {
+      "queryId": "65be07e2-61e7-4bcd-a00d-5b984ed514c2",
+      "queryName": "openaq_days_DataDestination",
+      "isHidden": true,
+      "loadEnabled": false
+    },
+    "openaq_sensors": {
+      "queryId": "3a3a5a24-0460-4734-94dd-42516c8045fd",
+      "queryName": "openaq_sensors",
+      "loadEnabled": false
+    },
+    "openaq_sensors_DataDestination": {
+      "queryId": "64531e5f-372f-40a3-a9d4-cc066871c875",
+      "queryName": "openaq_sensors_DataDestination",
+      "isHidden": true,
+      "loadEnabled": false
+    }
+  },
+  "connections": [
+    {
+      "path": "Lakehouse",
+      "kind": "Lakehouse",
+      "connectionId": "{\"ClusterId\":\"41803157-92ad-4a1f-a60d-f55cf72caea2\",\"DatasourceId\":\"1c173acb-2d06-430f-a990-9d90539ad4aa\"}"
+    },
+    {
+      "path": "https://api.openaq.org/v3",
+      "kind": "Web",
+      "connectionId": "{\"ClusterId\":\"41803157-92ad-4a1f-a60d-f55cf72caea2\",\"DatasourceId\":\"f883927c-5d3b-4b5f-8ad7-e3d0e55a2649\"}"
+    }
+  ],
+  "fastCombine": true
+}

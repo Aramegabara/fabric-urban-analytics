@@ -1,11 +1,11 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
   "metadata": {
-    "type": "Notebook",
-    "displayName": "nb_ingest_openaq"
+    "type": "Dataflow",
+    "displayName": "df_openaq"
   },
   "config": {
     "version": "2.0",
-    "logicalId": "4059e8b0-2ceb-9304-4e69-735989388e45"
+    "logicalId": "505c2de3-3a47-afe7-4c43-1514f5194ab5"
   }
 }
