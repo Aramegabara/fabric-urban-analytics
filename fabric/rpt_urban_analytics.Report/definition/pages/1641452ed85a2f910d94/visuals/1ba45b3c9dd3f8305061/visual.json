@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.15.0/schema.json",
+  "name": "1ba45b3c9dd3f8305061",
+  "position": {
+    "x": 1277.5,
+    "y": 0,
+    "z": 2,
+    "height": 212.5,
+    "width": 642.5,
+    "tabOrder": 2
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FactTaxiDaily"
+                    }
+                  },
+                  "Property": "Avg Fare USD"
+                }
+              },
+              "queryRef": "FactTaxiDaily.Avg Fare USD",
+              "nativeQueryRef": "Avg Fare USD"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

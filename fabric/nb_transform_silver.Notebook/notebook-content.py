@@ -40,6 +40,17 @@ WORKSPACE = "fabric-urban-analytics"
 ONELAKE = f"abfss://{WORKSPACE}@onelake.dfs.fabric.microsoft.com"
 BRONZE = f"{ONELAKE}/lh_bronze.Lakehouse"
 
+
+def write_silver(df, table_name, source):
+    (
+        df.withColumn("source_system", F.lit(source))
+        .withColumn("loaded_at", F.current_timestamp())
+        .write.mode("overwrite")
+        .option("overwriteSchema", "true")
+        .saveAsTable(table_name)
+    )
+    print(table_name, spark.table(table_name).count())
+
 # METADATA ********************
 
 # META {
@@ -75,11 +86,7 @@ fx_silver = (
     )
     .filter(F.col("rate_date").isNotNull() & F.col("usd_per_eur").isNotNull())
     .dropDuplicates(["rate_date"])
-    .withColumn("source_system", F.lit("ECB"))
-    .withColumn("loaded_at", F.current_timestamp())
 )
-
-print(fx_silver.count())
 
 # METADATA ********************
 
@@ -90,7 +97,7 @@ print(fx_silver.count())
 
 # CELL ********************
 
-fx_silver.write.mode("overwrite").option("overwriteSchema", "true").saveAsTable("silver_fx")
+write_silver(fx_silver, "silver_fx", "ECB")
 
 # METADATA ********************
 
@@ -119,11 +126,7 @@ gdp_silver = (
     )
     .filter(F.col("year").isNotNull() & F.col("gdp_usd").isNotNull())
     .dropDuplicates(["country_code", "year"])
-    .withColumn("source_system", F.lit("World Bank"))
-    .withColumn("loaded_at", F.current_timestamp())
 )
-
-print(gdp_silver.count())
 
 # METADATA ********************
 
@@ -134,7 +137,7 @@ print(gdp_silver.count())
 
 # CELL ********************
 
-gdp_silver.write.mode("overwrite").option("overwriteSchema", "true").saveAsTable("silver_gdp")
+write_silver(gdp_silver, "silver_gdp", "World Bank")
 
 # METADATA ********************
 

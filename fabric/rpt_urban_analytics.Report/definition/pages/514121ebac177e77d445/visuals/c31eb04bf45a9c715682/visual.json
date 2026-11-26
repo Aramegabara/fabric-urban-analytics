@@ -1,0 +1,66 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.15.0/schema.json",
+  "name": "c31eb04bf45a9c715682",
+  "position": {
+    "x": 0,
+    "y": 0,
+    "z": 1,
+    "height": 137.5,
+    "width": 1762.5,
+    "tabOrder": 1
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FactAirQualityDaily"
+                    }
+                  },
+                  "Property": "Avg Pollutant Value"
+                }
+              },
+              "queryRef": "FactAirQualityDaily.Avg Pollutant Value",
+              "nativeQueryRef": "Avg Pollutant Value"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FactAirQualityDaily"
+                    }
+                  },
+                  "Property": "Max Pollutant Value"
+                }
+              },
+              "queryRef": "FactAirQualityDaily.Max Pollutant Value",
+              "nativeQueryRef": "Max Pollutant Value"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FactAirQualityDaily"
+                    }
+                  },
+                  "Property": "Avg Coverage Pct"
+                }
+              },
+              "queryRef": "FactAirQualityDaily.Avg Coverage Pct",
+              "nativeQueryRef": "Avg Coverage Pct"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

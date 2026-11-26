@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "rpt_urban_analytics"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "abc79a8b-b2b5-817f-4dda-6c4004a08b39"
+  }
+}

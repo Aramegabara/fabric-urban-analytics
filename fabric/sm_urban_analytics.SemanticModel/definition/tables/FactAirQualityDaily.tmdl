@@ -1,0 +1,101 @@
+table FactAirQualityDaily
+	lineageTag: 48f4a7be-33c4-44c2-8766-62dd1c31c861
+	sourceLineageTag: [dbo].[FactAirQualityDaily]
+
+	measure 'Avg Pollutant Value' = AVERAGE(FactAirQualityDaily[value_avg])
+		formatString: 0.00
+		lineageTag: 983707ea-f549-456d-9d1c-5a6877630f12
+
+		changedProperty = Name
+
+		changedProperty = FormatString
+
+	measure 'Max Pollutant Value' = MAX(FactAirQualityDaily[value_max])
+		formatString: 0.00
+		lineageTag: fa1f84eb-d4fa-4705-ace1-3b84eb78b088
+
+		changedProperty = Name
+
+		changedProperty = FormatString
+
+	measure 'Avg Coverage Pct' = AVERAGE(FactAirQualityDaily[coverage_pct])
+		formatString: 0.0
+		lineageTag: 106da130-4ebc-44f1-9f9d-e1d9131c3856
+
+		changedProperty = Name
+
+		changedProperty = FormatString
+
+	measure 'Sensor Days' = COUNTROWS(FactAirQualityDaily)
+		formatString: 0
+		lineageTag: 41d22cf0-75aa-48ac-952a-38451ce297b3
+
+		changedProperty = Name
+
+	column date_key
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: f7e85d22-7295-4615-94ce-36af8270c77d
+		sourceLineageTag: date_key
+		summarizeBy: none
+		sourceColumn: date_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column sensor_id
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 2ba967a6-6195-4b1d-a852-e87f94885788
+		sourceLineageTag: sensor_id
+		summarizeBy: none
+		sourceColumn: sensor_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column value_avg
+		dataType: double
+		sourceProviderType: float
+		lineageTag: 0b515257-6711-453f-b4e2-3d6e70cacf39
+		sourceLineageTag: value_avg
+		summarizeBy: sum
+		sourceColumn: value_avg
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column value_max
+		dataType: double
+		sourceProviderType: float
+		lineageTag: 16ff5a8a-9b97-4c80-be2a-7ebdd9cafb00
+		sourceLineageTag: value_max
+		summarizeBy: sum
+		sourceColumn: value_max
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column coverage_pct
+		dataType: double
+		sourceProviderType: float
+		lineageTag: 47901073-6089-4565-a353-49a27c8829ee
+		sourceLineageTag: coverage_pct
+		summarizeBy: sum
+		sourceColumn: coverage_pct
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition FactAirQualityDaily = entity
+		mode: directLake
+		source
+			entityName: FactAirQualityDaily
+			schemaName: dbo
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+
