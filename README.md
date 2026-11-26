@@ -255,11 +255,21 @@ Report pages, mapped to the analytical questions in the project scope:
 | Mobility vs Air Quality | How traffic intensity relates to air quality |
 | Economic Impact | Revenue in USD vs EUR, GDP context |
 
-Taxi and air quality are joined on borough: `DimZone[borough]` and
-`DimSensor[borough]`. There is no finer link, because sensors do not map to taxi zones.
+Taxi and air quality can only be compared at borough level: `DimZone[borough]` and
+`DimSensor[borough]` carry the same borough names, but the two columns sit in
+unrelated tables, so one slicer does not filter both facts. Doing it properly needs a
+shared `DimBorough` dimension related to both fact tables; that is not built yet, so
+the correlation page compares the city as a whole. There is no finer link in any case,
+because sensors do not map to taxi zones.
 
 ## Known limitations
 
+- **Zero-distance trips are excluded.** `clean_taxi` requires `trip_distance > 0`,
+  which drops roughly 2.6 percent of trips. On reflection this is too aggressive: a
+  trip with zero distance, a positive duration and a positive fare is a real event —
+  the driver arrived, started the meter and waited. Dropping it silently removes paid
+  work from the revenue figures. The correct treatment is to keep these rows and expose
+  them as a separate drill-down.
 - **Daily grain only.** The scope specifies `FactTaxiDaily`, so time-of-day analysis is
   out of reach. An hourly fact would answer it but would be roughly 24 times larger.
 - **Borough-level correlation.** Twelve sensors across five boroughs and New Jersey is
