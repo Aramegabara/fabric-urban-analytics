@@ -271,7 +271,7 @@ def clean_taxi(df):
             & (F.col("pickup_date") < F.lit(WINDOW_END).cast("date"))
             & (F.col("duration_seconds") > 0)
             & (F.col("duration_seconds") < MAX_DURATION_SECONDS)
-            & (F.col("trip_distance") > 0)
+            & (F.col("trip_distance") >= 0)
             & (F.col("trip_distance") <= MAX_DISTANCE_MILES)
             & (F.col("total_amount") > 0)
             & (F.col("total_amount") <= MAX_TOTAL_AMOUNT)
@@ -350,7 +350,7 @@ taxi_silver.selectExpr(
 # Zones 264 and 265 are "Unknown" and "N/A" in the TLC lookup. They are kept:
 # dropping them would silently lose trips instead of showing them as unknown.
 # 
-# Sensor to borough mapping is manual, see nb_ingest_openaq. OpenAQ gives
+# Sensor to borough mapping is manual, see df_openaq. OpenAQ gives
 # coordinates but not boroughs.
 
 # CELL ********************
