@@ -96,11 +96,16 @@ code. Summary:
 **Taxi.** Profiling 2024-01 found pickup dates from 2002, distances up to 312722 miles,
 totals down to -900 and trips with zero passengers. Rows are dropped when the pickup
 date falls outside 2024-01-01 .. 2026-09-30, duration is not between 0 and 24 hours,
-distance is not in (0, 100] miles, total is not in (0, 1000] USD, or either zone id is
+distance is not in [0, 100] miles, total is not in (0, 1000] USD, or either zone id is
 outside 1..265.
 
 A bad `passenger_count` nulls the field, not the row. The trip itself is real; only
 that one attribute is unusable.
+
+Zero-distance trips are kept. A trip with zero distance but a positive duration and a
+positive fare is a real event: the driver arrived, started the meter and waited. They
+are 2.6 percent of all rows, and dropping them would remove paid work from the revenue
+figures. The upper bound stays, because 312722 miles is not a trip.
 
 Deduplication runs per month rather than globally. There is no trip key, and a full
 shuffle over 117M rows does not fit F2. Cross-month duplicates are impossible because
@@ -127,7 +132,7 @@ Every Silver table carries `source_system` and `loaded_at`.
 
 | Table | Rows |
 | --- | --- |
-| `silver_taxi` | 117 618 292 |
+| `silver_taxi` | 120 710 360 |
 | `silver_air_quality` | 10 998 |
 | `silver_fx` | 724 |
 | `silver_zones` | 265 |
@@ -151,7 +156,7 @@ integers use `SMALLINT`.
 
 ### Data dictionary
 
-**FactTaxiDaily** — one row per day and pickup zone. 238 038 rows.
+**FactTaxiDaily** — one row per day and pickup zone. 239 362 rows.
 
 | Column | Type | Null | Description |
 | --- | --- | --- | --- |
@@ -264,12 +269,14 @@ because sensors do not map to taxi zones.
 
 ## Known limitations
 
-- **Zero-distance trips are excluded.** `clean_taxi` requires `trip_distance > 0`,
-  which drops roughly 2.6 percent of trips. On reflection this is too aggressive: a
-  trip with zero distance, a positive duration and a positive fare is a real event —
-  the driver arrived, started the meter and waited. Dropping it silently removes paid
-  work from the revenue figures. The correct treatment is to keep these rows and expose
-  them as a separate drill-down.
+- **Zero-distance trips are not separable in the report.** They are kept in Silver and
+  Gold, but `FactTaxiDaily` aggregates them together with the rest, so the report
+  cannot isolate them. Splitting them out would need either a flag column on the fact
+  or a separate drill-down fact.
+- **Warehouse load scripts are not individually idempotent.** Each `3x`/`4x` script is
+  an `INSERT INTO`, so running one twice doubles that table. A full rebuild from
+  `00_drop_all` is safe; a partial rerun is not. Starting each load script with
+  `TRUNCATE TABLE` would fix this and is the next change to make.
 - **Daily grain only.** The scope specifies `FactTaxiDaily`, so time-of-day analysis is
   out of reach. An hourly fact would answer it but would be roughly 24 times larger.
 - **Borough-level correlation.** Twelve sensors across five boroughs and New Jersey is
@@ -302,9 +309,11 @@ DDL are all versioned as text.
 items, the lakehouses they write to, the notebook, the warehouse, the semantic model
 and the report.
 
-**Idempotency.** Every stage can be rerun safely. The pipeline overwrites files by
-name, the notebook writes Silver with `overwrite`, and the Warehouse scripts drop and
-rebuild the star schema.
+**Idempotency.** The pipeline overwrites files by name and the notebook writes Silver
+with `overwrite`, so both are safe to rerun. The Warehouse scripts are safe only as a
+full sequence starting from `00_drop_all`: the individual load scripts are plain
+`INSERT INTO` statements, and rerunning one on its own doubles that table. This is
+listed under known limitations.
 
 **Refresh.** Ingestion and transformation are scheduled daily. The TLC publishing lag
 means new taxi data appears roughly monthly, but the OpenAQ, ECB and World Bank
